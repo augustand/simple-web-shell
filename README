@@ -1,0 +1,11 @@
+A simple PHP web shell.
+
+Malicious web shells are often uploaded to vulnerable web servers to allow the attacker access to system commands on the remote host via HTTP.
+
+Abitrary file upload vulnerabilities are a common means of uploading a web shell.
+
+This shell is using php's built in exec() function which allows you to call external programs / system commands. This is mainly for demo purposes. On production servers this function and similar dangerous functions will often be disabled via the disabled_functions directive in php.ini.
+
+
+
+
