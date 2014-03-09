@@ -10,7 +10,7 @@
             //$lines = preg_split("/\r\n|\n|\r/", $output);
 
             header('Content-Type: application.json');
-            echo json_encode(array("foo" => $lines));
+            echo json_encode(array("cmd_output" => $lines, "cmd" => $_POST["cmd"]));
 
             exit();
     }
@@ -26,74 +26,102 @@
                 background: #000000;
                 width: 100%;
                 overflow-y: auto;
-                height: 50%;
+                height: 90%;
 
             }
 
             #terminal-out > p {
                 color: #6AFF00;
+                margin: 3px;
             }
 
+            #terminal {
+
+                width: 100%;
+            }
+
+            #cmd {
+                border-left:0;
+                border-right:0;
+                border-bottom:0;
+                border-top: 1;
+                border-color: #6AFF00;
+                background: #2B2B2B;
+                color: #6AFF00;
+                width: 100%
+            }
+
+
+            #submit_button {
+                display: none;
+            }
+
+           
+
+       
+
         </style>
-
         <script>
-        var update_terminal = function(text) {
+        var update_terminal = function(output) {
 
+
+            var term = document.getElementById("terminal-out");
+            
+
+            //Check which property to use to edit text node.
+            //Firefox doesn't support innerText, IE doesn't support
+            //textContent.
+            //Could just use innerHTML but it's not safe with respect to tag injection
             var new_paragraph = document.createElement("p");
-            new_paragraph.innerHTML = text;
+            var textProperty = ('innerText' in new_paragraph) ? 'innerText' : 'textContent';
 
-            document.getElementById("terminal-out").appendChild(new_paragraph);
-
-            /*keep scroll to bottom of div
-            var ouput_div = document.getElementById('terminal-out');
-            output_div.scrollTop = ouput_div.scrollHeight;*/
-
+            new_paragraph[textProperty] = ">>> " + output.cmd;
+            term.appendChild(new_paragraph);
             new_paragraph.scrollIntoView(false);
-            return new_paragraph;
+
+            for(var i = 0; i < output.cmd_output.length; i++)
+            {
+                new_paragraph = document.createElement("p");
+                new_paragraph[textProperty] = output.cmd_output[i];
+                term.appendChild(new_paragraph);
+                new_paragraph.scrollIntoView(false);
+            }
+
+            term.appendChild(document.createElement("br"));
+
         };
 
-        var send_command = function() {
+        var send_command = function(e) {
+            e.preventDefault();
             var cmd = document.getElementById("cmd").value;
 
             var req = new XMLHttpRequest();
+
             req.onreadystatechange = function() {
                 if(req.readyState === 4) {
-                    update_terminal(req.responseText);
+                    update_terminal(JSON.parse(req.responseText));
                 }
             };
 
             req.open("POST", document.URL, true);
             req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            req.send("cmd="+cmd);
-
+            req.send("cmd="+ encodeURIComponent(cmd));
 
         };
 
-
         </script>
-
     </head>
 
     <body>
         <code>
             <div id="terminal-out">
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-                <p>Test data foo foo adfaj atae adsf adsfat adkljasd cad asdlacdal</p>
-            </div>
+           </div>
         </code>
 
-        <form id="terminal" method="POST" action="shell.php">
+        <form id="terminal" onsubmit="send_command(event);">
             <input type="text" id="cmd">
-            <input type="submit">
+            <input type="submit" id="submit_button">
         </form>
 
-        <input type="button" onclick="update_terminal('Foo Foo Foo Foo');">
     </body>
 </html>
